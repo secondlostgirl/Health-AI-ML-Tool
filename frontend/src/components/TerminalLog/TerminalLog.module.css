@@ -1,0 +1,84 @@
+.wrapper {
+  background: #0d1117;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.titleBar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #161b22;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.content {
+  padding: 16px;
+  min-height: 140px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 2;
+}
+
+.placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.logLine {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.done {
+  color: var(--color-accent-green);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.logText {
+  color: var(--color-text-secondary);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--color-border);
+  background: #161b22;
+}
+
+.footerIcon {
+  font-size: 12px;
+}
+
+.footerText {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.statusDot.active {
+  background: var(--color-accent-green);
+}

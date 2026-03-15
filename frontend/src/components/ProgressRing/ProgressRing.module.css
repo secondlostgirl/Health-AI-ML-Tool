@@ -1,0 +1,49 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.svg {
+  display: block;
+}
+
+.bgCircle {
+  fill: none;
+  stroke: var(--color-bg-tertiary);
+}
+
+.progressCircle {
+  fill: none;
+  stroke: var(--color-accent-green);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.progressText {
+  fill: var(--color-text-primary);
+  font-size: 36px;
+  font-weight: 700;
+  font-family: var(--font-family);
+}
+
+.progressLabel {
+  fill: var(--color-accent-green);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-family);
+}
+
+.statusText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.duration {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
