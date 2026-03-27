@@ -1,0 +1,30 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--color-accent-red-dim);
+  border: 1px solid var(--color-accent-red);
+  border-radius: var(--radius-md);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-accent-red);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-danger);
+  line-height: 1.4;
+}

@@ -4,6 +4,10 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.scrollArea {
+  position: relative;
+}
+
 .scrollContainer {
   display: flex;
   gap: 10px;
@@ -15,6 +19,40 @@
 
 .scrollContainer::-webkit-scrollbar {
   display: none;
+}
+
+/* Arrow buttons */
+.arrow {
+  position: absolute;
+  top: 0;
+  bottom: 4px;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  transition: color var(--transition-fast);
+}
+
+.arrow:hover {
+  color: var(--color-accent-green);
+}
+
+.arrowLeft {
+  left: 0;
+  padding-right: 8px;
+  background: linear-gradient(to right, var(--color-bg-primary) 55%, transparent);
+}
+
+.arrowRight {
+  right: 0;
+  padding-left: 8px;
+  background: linear-gradient(to left, var(--color-bg-primary) 55%, transparent);
 }
 
 .pill {
@@ -39,4 +77,35 @@
   background: var(--color-accent-green);
   color: #fff;
   border-color: var(--color-accent-green);
+}
+
+.resetBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: var(--color-accent-orange-dim);
+  border: 1px solid rgba(210, 153, 34, 0.4);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-orange);
+  animation: slideIn 0.25s ease;
+}
+
+.resetIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

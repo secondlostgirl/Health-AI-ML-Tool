@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "WebFetch(domain:www.figma.com)",
+      "Bash(node:*)",
+      "Bash(npx vitest:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(curl:*)",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(find C:UserssenaadesktopHealth-AI-ML-Toolfrontendsrc -type f \\\\\\(-name *.jsx -o -name *.js \\\\\\))",
+      "Bash(npm run:*)"
+    ]
+  }
+}

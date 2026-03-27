@@ -7,6 +7,8 @@ import HelpModal from './components/HelpModal/HelpModal';
 import Step1ClinicalContext from './pages/Step1ClinicalContext/Step1ClinicalContext';
 import Step2DataExploration from './pages/Step2DataExploration/Step2DataExploration';
 import Step3DataPreparation from './pages/Step3DataPreparation/Step3DataPreparation';
+import Step4ModelParameters from './pages/Step4ModelParameters/Step4ModelParameters';
+import Step5Results from './pages/Step5Results/Step5Results';
 import styles from './App.module.css';
 
 export default function App() {
@@ -21,6 +23,10 @@ export default function App() {
         return <Step2DataExploration />;
       case 3:
         return <Step3DataPreparation />;
+      case 4:
+        return <Step4ModelParameters />;
+      case 5:
+        return <Step5Results />;
       default:
         return (
           <div className={styles.comingSoon}>
