@@ -80,3 +80,31 @@ class DataPrepResponse(BaseModel):
     normalisation_chart: List[DistributionBar]   # before/after per feature
     class_balance_chart: List[DistributionBar]   # before/after class counts
     message: str
+
+
+# ── Step 4: Model & Parameters ────────────────────────────────────────────────
+
+class SVMParams(BaseModel):
+    kernel: str = "linear"          # "linear" | "rbf"
+    C: float = 1.0                  # regularisation strength
+    gamma: str = "scale"            # "scale" | "auto" | float — only used for RBF
+
+class RandomForestParams(BaseModel):
+    n_estimators: int = 100         # number of trees (US-012)
+    max_depth: Optional[int] = None
+    random_state: int = 42
+
+class TrainRequest(BaseModel):
+    model: str                      # "svm" | "random_forest"
+    params: Dict[str, Any]          # validated per-model inside the router
+
+class TrainResponse(BaseModel):
+    model: str
+    params_used: Dict[str, Any]
+    accuracy: float
+    precision: float
+    recall: float
+    f1: float
+    confusion_matrix: List[List[int]]
+    class_labels: List[str]
+    message: str
