@@ -35,6 +35,9 @@ export default function ColumnMapper() {
   if (!csvData) return null;
 
   const columns = columnStats.map((c) => c.name);
+  const categoricalColumns = columnStats
+    .filter((c) => c.type === 'Categorical')
+    .map((c) => c.name);
 
   const handleToggleInclude = (colName) => {
     setIncluded((prev) => ({ ...prev, [colName]: !prev[colName] }));
@@ -81,7 +84,7 @@ export default function ColumnMapper() {
           onChange={(e) => setTargetColumn(e.target.value)}
         >
           <option value="">Select target column...</option>
-          {columns.map((col) => (
+          {categoricalColumns.map((col) => (
             <option key={col} value={col}>
               {col}
             </option>

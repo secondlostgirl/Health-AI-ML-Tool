@@ -41,10 +41,18 @@ export default function Step4ModelParameters() {
     const { data, error } = await trainModel(selectedModel, currentParams);
 
     if (error) {
-      // Fall back to mock results
-      const mock = generateMockResults(selectedModel, currentParams);
-      setTrainingResults(mock);
-      setTrainingStatus('complete');
+      const isNetworkError = error === 'Backend is not reachable.'
+        || error.includes('not yet supported by the backend');
+      if (isNetworkError) {
+        // Fall back to mock results for network errors or unsupported models
+        const mock = generateMockResults(selectedModel, currentParams);
+        setTrainingResults(mock);
+        setTrainingStatus('complete');
+      } else {
+        // Backend validation error — show it, block progression
+        setTrainingError(error);
+        setTrainingStatus('idle');
+      }
     } else {
       setTrainingResults(data);
       setTrainingStatus('complete');

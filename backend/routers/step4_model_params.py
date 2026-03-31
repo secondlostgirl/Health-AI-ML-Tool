@@ -155,6 +155,19 @@ def train_model(
         df, target_col, feature_cols, prep_req
     )
 
+    # ── Validate target is categorical (classifiers cannot handle continuous) ─
+    n_unique = len(np.unique(y_train))
+    if n_unique > 20:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Target column '{target_col}' has {n_unique} unique values and "
+                f"appears to be continuous. Classification models require a "
+                f"categorical target. Please select a column with discrete "
+                f"classes (e.g. Yes/No, 0/1) in Step 2."
+            ),
+        )
+
     # ── Build and train model ─────────────────────────────────────────────────
     if request.model == "svm":
         model, params_used = _train_svm(X_train, y_train, request.params)
@@ -169,12 +182,15 @@ def train_model(
     # ── Evaluate ──────────────────────────────────────────────────────────────
     y_pred = model.predict(X_test)
     class_labels = [str(c) for c in sorted(np.unique(np.concatenate([y_train, y_test])))]
-    avg = "binary" if len(class_labels) == 2 else "weighted"
+    is_binary = len(class_labels) == 2
+    # Use pos_label for binary with string labels; weighted for multiclass
+    avg = "binary" if is_binary else "weighted"
+    pos_lbl = class_labels[-1] if is_binary else None  # sorted: last = positive ("Yes", "1", etc.)
 
     accuracy  = round(float(accuracy_score(y_test, y_pred)), 4)
-    precision = round(float(precision_score(y_test, y_pred, average=avg, zero_division=0)), 4)
-    recall    = round(float(recall_score(y_test, y_pred, average=avg, zero_division=0)), 4)
-    f1        = round(float(f1_score(y_test, y_pred, average=avg, zero_division=0)), 4)
+    precision = round(float(precision_score(y_test, y_pred, average=avg, pos_label=pos_lbl, zero_division=0)), 4)
+    recall    = round(float(recall_score(y_test, y_pred, average=avg, pos_label=pos_lbl, zero_division=0)), 4)
+    f1        = round(float(f1_score(y_test, y_pred, average=avg, pos_label=pos_lbl, zero_division=0)), 4)
     cm        = sk_confusion_matrix(y_test, y_pred).tolist()
 
     # ── Specificity from confusion matrix ────────────────────────────────────

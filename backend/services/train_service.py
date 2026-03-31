@@ -64,11 +64,13 @@ def get_splits(
     X = work[feature_cols].values
     y = work[target_col].values
 
+    unique_classes, class_counts = np.unique(y, return_counts=True)
+    can_stratify = len(unique_classes) > 1 and all(c >= 2 for c in class_counts)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=request.test_size,
         random_state=request.random_state,
-        stratify=y if len(np.unique(y)) > 1 else None,
+        stratify=y if can_stratify else None,
     )
 
     # SMOTE (training set only)

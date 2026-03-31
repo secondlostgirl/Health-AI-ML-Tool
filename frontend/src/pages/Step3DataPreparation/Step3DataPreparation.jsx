@@ -45,15 +45,24 @@ export default function Step3DataPreparation() {
       const { data, error } = await runDataPreparation(pipelineConfig);
 
       if (error) {
-        addPipelineLog(`Backend error: ${error}`);
-        addPipelineLog('Falling back to local simulation...');
-        // Fall back to local simulator
-        await runPipeline(
-          pipelineConfig,
-          csvData,
-          (progress) => setPipelineProgress(progress),
-          (log) => addPipelineLog(log)
-        );
+        const isNetworkError = error === 'Backend is not reachable.';
+        if (isNetworkError) {
+          addPipelineLog('Backend unavailable. Falling back to local simulation...');
+          await runPipeline(
+            pipelineConfig,
+            csvData,
+            (progress) => setPipelineProgress(progress),
+            (log) => addPipelineLog(log)
+          );
+        } else {
+          // Backend validation error — show it, block progression
+          addPipelineLog(`Error: ${error}`);
+          setPipelineProgress(0);
+          const elapsed = ((performance.now() - start) / 1000).toFixed(1);
+          setPipelineDuration(elapsed);
+          setPipelineStatus('idle');
+          return;
+        }
       } else {
         setPipelineProgress(50);
         addPipelineLog(`Missing values handled: ${data.missing_handled} cells`);
