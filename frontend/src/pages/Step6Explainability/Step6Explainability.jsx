@@ -168,23 +168,11 @@ export default function Step6Explainability() {
   const [whatIfData, setWhatIfData] = useState(null);
   const [whatIfLoading, setWhatIfLoading] = useState(false);
 
-  // Gate: model must be trained
-  if (trainingStatus !== 'complete' || !trainingResults) {
-    return (
-      <div className={styles.blocked}>
-        <div className={styles.blockedCard}>
-          <span className={styles.blockedIcon}>🔒</span>
-          <h2>Step 6 is locked</h2>
-          <p>Train a model in Step 4 before exploring explainability.</p>
-          <button className={styles.goBackBtn} onClick={() => setStep(4)}>
-            &larr; Go Back to Step 4
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // All hooks must be declared before any conditional return (React rules of hooks).
+  const isTrained = trainingStatus === 'complete' && !!trainingResults;
 
   const loadFeatureImportance = useCallback(async () => {
+    if (!isTrained) return;
     setImportanceLoading(true);
     setImportanceError(null);
     const { data, error } = await getFeatureImportance(selectedDomainId, 5);
@@ -194,7 +182,7 @@ export default function Step6Explainability() {
     } else {
       setImportanceData(data);
     }
-  }, [selectedDomainId]);
+  }, [selectedDomainId, isTrained]);
 
   const loadPatient = useCallback(async (idx) => {
     setPatientLoading(true);
@@ -206,7 +194,6 @@ export default function Step6Explainability() {
       setPatientError(error);
     } else {
       setPatientData(data);
-      // Auto-compute what-if for the top feature
       if (data?.top_feature) {
         setWhatIfLoading(true);
         const { data: wiData } = await computeWhatIf(idx, data.top_feature, 1.0);
@@ -217,8 +204,8 @@ export default function Step6Explainability() {
   }, []);
 
   useEffect(() => {
-    loadFeatureImportance();
-  }, [loadFeatureImportance]);
+    if (isTrained) loadFeatureImportance();
+  }, [loadFeatureImportance, isTrained]);
 
   useEffect(() => {
     if (importanceData) {
@@ -233,6 +220,22 @@ export default function Step6Explainability() {
 
   const patientLabels = ['Patient A', 'Patient B', 'Patient C'];
   const patients = patientData?.patients ?? [];
+
+  // Gate: model must be trained (after all hooks)
+  if (!isTrained) {
+    return (
+      <div className={styles.blocked}>
+        <div className={styles.blockedCard}>
+          <span className={styles.blockedIcon}>🔒</span>
+          <h2>Step 6 is locked</h2>
+          <p>Train a model in Step 4 before exploring explainability.</p>
+          <button className={styles.goBackBtn} onClick={() => setStep(4)}>
+            &larr; Go Back to Step 4
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

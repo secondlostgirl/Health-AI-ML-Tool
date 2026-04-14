@@ -5,6 +5,7 @@ import DomainPillBar from './components/DomainPillBar/DomainPillBar';
 import Stepper from './components/Stepper/Stepper';
 import Footer from './components/Footer/Footer';
 import HelpModal from './components/HelpModal/HelpModal';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import Step1ClinicalContext from './pages/Step1ClinicalContext/Step1ClinicalContext';
 import Step2DataExploration from './pages/Step2DataExploration/Step2DataExploration';
 import Step3DataPreparation from './pages/Step3DataPreparation/Step3DataPreparation';
@@ -50,7 +51,9 @@ export default function App() {
       <Header />
       <DomainPillBar />
       <Stepper />
-      <main className={styles.content}>{renderStep()}</main>
+      <main className={styles.content}>
+        <ErrorBoundary key={currentStep}>{renderStep()}</ErrorBoundary>
+      </main>
       <Footer />
       {showHelp && <HelpModal />}
     </div>

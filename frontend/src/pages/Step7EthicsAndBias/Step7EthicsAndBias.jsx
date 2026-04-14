@@ -252,18 +252,8 @@ export default function Step7EthicsAndBias() {
   const [certLoading, setCertLoading] = useState(false);
   const [certError, setCertError] = useState(null);
 
-  // Gate: model must be trained
-  if (trainingStatus !== 'complete' || !trainingResults) {
-    return (
-      <div className={styles.blocked}>
-        <div className={styles.blockedCard}>
-          <span className={styles.blockedIcon}>🔒</span>
-          <h2>Step 7 is locked</h2>
-          <p>Train a model in Step 4 before the Ethics &amp; Bias audit.</p>
-        </div>
-      </div>
-    );
-  }
+  // All hooks must be declared before any conditional return (React rules of hooks).
+  const isTrained = trainingStatus === 'complete' && !!trainingResults;
 
   const loadBias = useCallback(async () => {
     setBiasLoading(true);
@@ -282,9 +272,24 @@ export default function Step7EthicsAndBias() {
   }, []);
 
   useEffect(() => {
-    loadBias();
-    loadPop();
-  }, []);
+    if (isTrained) {
+      loadBias();
+      loadPop();
+    }
+  }, [isTrained]);
+
+  // Gate: model must be trained (after all hooks)
+  if (!isTrained) {
+    return (
+      <div className={styles.blocked}>
+        <div className={styles.blockedCard}>
+          <span className={styles.blockedIcon}>🔒</span>
+          <h2>Step 7 is locked</h2>
+          <p>Train a model in Step 4 before the Ethics &amp; Bias audit.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleToggle = (idx) => {
     // First 2 items are pre-checked and remain toggleable
