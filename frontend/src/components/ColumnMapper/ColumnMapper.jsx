@@ -32,10 +32,7 @@ export default function ColumnMapper() {
     return init;
   });
 
-  if (!csvData) return null;
-
-  const columns = columnStats.map((c) => c.name);
-
+  // Must be before early return — hooks cannot be called conditionally.
   // Include categorical columns AND numeric columns with ≤10 unique values
   // (binary targets like 0/1 are classified as Numerical but are valid targets)
   const targetEligibleColumns = useMemo(() => {
@@ -48,6 +45,10 @@ export default function ColumnMapper() {
       })
       .map((c) => c.name);
   }, [columnStats, csvData]);
+
+  if (!csvData) return null;
+
+  const columns = columnStats.map((c) => c.name);
 
   const handleToggleInclude = (colName) => {
     setIncluded((prev) => ({ ...prev, [colName]: !prev[colName] }));
