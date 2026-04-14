@@ -9,6 +9,7 @@ import styles from './DomainPillBar.module.css';
 export default function DomainPillBar() {
   const selectedDomainId = useAppStore((s) => s.selectedDomainId);
   const setDomain = useAppStore((s) => s.setDomain);
+  const currentStep = useAppStore((s) => s.currentStep);
   const resetData = useDataStore((s) => s.resetAll);
   const resetModel = useModelStore((s) => s.resetModel);
   const [showResetBanner, setShowResetBanner] = useState(false);
@@ -45,10 +46,14 @@ export default function DomainPillBar() {
   const handleSelect = (id) => {
     if (id !== selectedDomainId) {
       setDomain(id);
-      resetData();
-      resetModel();
-      clearSessionId();
-      setShowResetBanner(true);
+      // On Step 6/7, only update the domain (sense-check text refreshes automatically).
+      // Full reset only happens on Steps 1–5 where retraining is needed.
+      if (currentStep <= 5) {
+        resetData();
+        resetModel();
+        clearSessionId();
+        setShowResetBanner(true);
+      }
     }
   };
 

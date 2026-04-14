@@ -35,9 +35,19 @@ export default function ColumnMapper() {
   if (!csvData) return null;
 
   const columns = columnStats.map((c) => c.name);
-  const categoricalColumns = columnStats
-    .filter((c) => c.type === 'Categorical')
-    .map((c) => c.name);
+
+  // Include categorical columns AND numeric columns with ≤10 unique values
+  // (binary targets like 0/1 are classified as Numerical but are valid targets)
+  const targetEligibleColumns = useMemo(() => {
+    if (!csvData || columnStats.length === 0) return [];
+    return columnStats
+      .filter((col) => {
+        if (col.type === 'Categorical') return true;
+        const unique = new Set(csvData.map((r) => r[col.name]));
+        return unique.size <= 10;
+      })
+      .map((c) => c.name);
+  }, [columnStats, csvData]);
 
   const handleToggleInclude = (colName) => {
     setIncluded((prev) => ({ ...prev, [colName]: !prev[colName] }));
@@ -84,7 +94,7 @@ export default function ColumnMapper() {
           onChange={(e) => setTargetColumn(e.target.value)}
         >
           <option value="">Select target column...</option>
-          {categoricalColumns.map((col) => (
+          {targetEligibleColumns.map((col) => (
             <option key={col} value={col}>
               {col}
             </option>
