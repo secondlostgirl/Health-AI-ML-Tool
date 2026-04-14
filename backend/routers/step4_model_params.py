@@ -728,10 +728,12 @@ def train_model(
 
     # ── Evaluate ──────────────────────────────────────────────────────────────
     y_pred = model.predict(X_test)
-    class_labels = [str(c) for c in sorted(np.unique(np.concatenate([y_train, y_test])))]
+    unique_vals = sorted(np.unique(np.concatenate([y_train, y_test])).tolist())
+    class_labels = [str(c) for c in unique_vals]
     is_binary = len(class_labels) == 2
     avg = "binary" if is_binary else "weighted"
-    pos_lbl = class_labels[-1] if is_binary else None
+    # pos_lbl must match the actual dtype in y_test (int, float, or str)
+    pos_lbl = unique_vals[-1] if is_binary else None
 
     accuracy  = round(float(accuracy_score(y_test, y_pred)), 4)
     precision = round(float(precision_score(y_test, y_pred, average=avg, pos_label=pos_lbl, zero_division=0)), 4)

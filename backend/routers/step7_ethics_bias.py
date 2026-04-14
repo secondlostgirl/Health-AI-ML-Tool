@@ -150,9 +150,11 @@ def get_bias_analysis(x_session_id: str = Header(...)):
     y_pred = model.predict(X_test)
     y_test_arr = np.array(y_test)
 
-    # Determine positive label (last class for binary, first for multiclass)
-    is_binary = len(class_labels) == 2
-    pos_label = class_labels[-1] if is_binary else class_labels[0]
+    # Determine positive label — use actual values from y_test to preserve dtype
+    # (class_labels are stored as strings but y_test may contain integers)
+    unique_y = sorted(np.unique(y_test_arr).tolist())
+    is_binary = len(unique_y) == 2
+    pos_label = unique_y[-1] if is_binary else unique_y[0]
 
     # Overall sensitivity
     overall_sens, overall_spec = _sensitivity_specificity(y_test_arr, y_pred, pos_label)
