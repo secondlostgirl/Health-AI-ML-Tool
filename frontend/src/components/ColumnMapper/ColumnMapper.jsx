@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
+import Papa from 'papaparse';
 import useDataStore from '../../stores/useDataStore';
 import { computeColumnStats } from '../../utils/dataAnalyzer';
-import { saveColumnMapping } from '../../api';
+import { saveColumnMapping, uploadCsv } from '../../api';
 import { getSessionId } from '../../api/client';
 import styles from './ColumnMapper.module.css';
 
@@ -66,22 +67,33 @@ export default function ColumnMapper() {
       (col) => included[col] === false
     );
 
-    // If backend session exists, save via API
     if (getSessionId()) {
       setMappingLoading(true);
       setMappingError(null);
 
-      const { error } = await saveColumnMapping(targetColumn, featureColumns, dropColumns);
+      let { error } = await saveColumnMapping(targetColumn, featureColumns, dropColumns);
+
+      // Backend restarted and lost the session — re-upload CSV data and retry
+      if (error && error.includes('No dataset found')) {
+        const csvString = Papa.unparse(csvData);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const file = new File([blob], 'data.csv', { type: 'text/csv' });
+        const { error: uploadErr } = await uploadCsv(file);
+        if (!uploadErr) {
+          const retry = await saveColumnMapping(targetColumn, featureColumns, dropColumns);
+          error = retry.error;
+        }
+      }
 
       setMappingLoading(false);
 
-      if (error) {
-        setMappingError(error);
-        return;
+      // Show warning but don't block — always save locally so Step 3 unlocks
+      if (error && error !== 'Backend is not reachable.') {
+        setMappingError('Warning: backend sync failed — saved locally. Re-upload your CSV if Step 4 training fails.');
       }
     }
 
-    // Local save (gates Step 3)
+    // Always save locally (gates Step 3)
     saveMapperLocal();
   };
 
