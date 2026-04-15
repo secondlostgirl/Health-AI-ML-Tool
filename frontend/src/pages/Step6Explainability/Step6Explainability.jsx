@@ -1,8 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useAppStore from '../../stores/useAppStore';
 import useModelStore from '../../stores/useModelStore';
 import { getFeatureImportance, predictPatient, computeWhatIf } from '../../api/step6Api';
 import styles from './Step6Explainability.module.css';
+
+// ── Frontend sense-check lookup (instant, no API call needed) ─────────────────
+const SENSE_CHECK = {
+  'cardiology': 'LVEF (%), NT-proBNP and Troponin Levels are the top predictors here. Low Left Ventricular Ejection Fraction and high NT-proBNP/Troponin are direct biomarkers of cardiac muscle damage and pump failure.',
+  'radiology': 'Lesion Size/Volume, Margin Sharpness and Contrast Enhancement Rate lead the model. Irregular margins and rapid contrast enhancement on scans strongly correlate with malignant angiogenesis and tumour aggression.',
+  'nephrology': 'Serum Creatinine, eGFR and Proteinuria are the strongest predictors. Declining GFR and protein leakage are the primary, most reliable biochemical markers of acute kidney injury and progression to ESRD.',
+  'oncology': 'TNM Stage, Histological Grade and Metastasis Indicator dominate the model. Tumour staging and cellular grade are the most universally validated predictors of survival rates, recurrence risk, and treatment response.',
+  'neurology': 'Cognitive Score (MMSE), Brain Atrophy Volume and Amyloid/Tau Biomarkers are the top features. Structural brain changes and specific protein accumulations are the core drivers of neurodegenerative decline and dementia progression.',
+  'endocrinology': 'TSH Levels, Free T4 and Cortisol Levels lead the predictions. Severe hormone dysregulation directly impacts systemic metabolic stability, predicting crises like thyroid storms or adrenal insufficiency.',
+  'hepatology': 'AST/ALT Ratio, Serum Bilirubin and MELD Score are the strongest predictors. Liver enzyme ratios and bilirubin levels directly quantify hepatocellular injury and the liver\'s remaining detoxifying capacity.',
+  'cardiology-stroke': 'AFib History, CHA₂DS₂-VASc Score and Left Atrial Enlargement are the top features. Atrial Fibrillation causes blood pooling in the heart\'s atria, creating cardiogenic clots that travel to the brain, risking ischaemic stroke.',
+  'mental-health': 'PHQ-9 (Depression Score), Previous Crisis Episodes and Medication Adherence dominate. Severe symptom severity scores and a history of non-adherence are the strongest predictors of acute psychiatric relapse or crisis.',
+  'diabetes': 'HbA1c Levels, Fasting Blood Glucose and Neuropathy Presence are the top predictors. Long-term elevated HbA1c mechanically damages microvasculature, leading directly to irreversible complications like neuropathy and retinopathy.',
+  'pulmonology': 'FEV1/FVC Ratio, O₂ Saturation (SpO₂) and Smoking Pack-Years lead the model. Reduced expiratory volume and chronic hypoxia indicate irreversible airway obstruction, strongly predicting COPD exacerbations.',
+  'sepsis-icu': 'Serum Lactate, SOFA Score and Procalcitonin are the strongest predictors. Elevated lactate indicates severe tissue hypoperfusion, while a rising SOFA score reflects imminent multi-organ failure.',
+  'fetal-health': 'Fetal Heart Rate Baseline, Late Decelerations and Uterine Contraction Rate dominate. Prolonged decelerations in heart rate during contractions indicate fetal oxygen deprivation and acute distress requiring intervention.',
+  'dermatology': 'Lesion Asymmetry, Colour Variegation and Border Irregularity are the top features. Morphological asymmetry and uneven pigmentation (the ABCD rule) are the hallmark clinical signs of malignant melanocytes.',
+  'stroke': 'NIHSS Score at Admission, Time to Thrombolysis and Infarct Volume lead the model. Initial neurological deficit severity (NIHSS) and the time elapsed before intervention heavily dictate permanent brain damage and recovery.',
+  'gastroenterology': 'Fecal Calprotectin, CRP Levels and Haemoglobin Drops are the strongest predictors. Calprotectin is a highly specific marker for intestinal inflammation (IBD), while dropping haemoglobin indicates active gastrointestinal bleeding.',
+  'orthopedics': 'Joint Space Narrowing, Bone Mineral Density and Pain Severity Score dominate the model. Mechanical degradation of cartilage and low bone density directly predict joint failure, fracture risk, and the need for arthroplasty.',
+  'ophthalmology': 'Intraocular Pressure (IOP), Cup-to-Disc Ratio and Macular Thickness are the top features. Sustained high intraocular pressure and optic nerve cupping are the fundamental mechanical causes of irreversible visual field loss in glaucoma.',
+  'hematology': 'Blast Cell Count, Platelet Count and Haemoglobin Levels lead the predictions. The presence of immature blast cells and severe cytopenias (low platelets/Hb) indicate severe bone marrow failure or haematologic malignancy.',
+  'infectious-disease': 'Viral/Bacterial Load, WBC Count and CRP/ESR are the strongest predictors. High pathogen loads coupled with extreme immune responses (WBC and inflammatory markers) correlate directly with systemic infectious severity.',
+};
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -170,6 +194,7 @@ export default function Step6Explainability() {
 
   // All hooks must be declared before any conditional return (React rules of hooks).
   const isTrained = trainingStatus === 'complete' && !!trainingResults;
+  const retryTimerRef = useRef(null);
 
   const loadFeatureImportance = useCallback(async () => {
     if (!isTrained) return;
@@ -183,6 +208,14 @@ export default function Step6Explainability() {
       setImportanceData(data);
     }
   }, [selectedDomainId, isTrained]);
+
+  // Auto-retry when backend is cold-starting (Render free tier)
+  useEffect(() => {
+    if (importanceError === 'Backend is not reachable.') {
+      retryTimerRef.current = setTimeout(() => loadFeatureImportance(), 5000);
+    }
+    return () => clearTimeout(retryTimerRef.current);
+  }, [importanceError, loadFeatureImportance]);
 
   const loadPatient = useCallback(async (idx) => {
     setPatientLoading(true);
@@ -247,10 +280,8 @@ export default function Step6Explainability() {
         </div>
       </div>
 
-      {/* Clinical Sense-Check Banner */}
-      {importanceData?.clinical_sense_check && (
-        <SenseCheckBanner text={importanceData.clinical_sense_check} />
-      )}
+      {/* Clinical Sense-Check Banner — reads from frontend lookup, instant on domain change */}
+      <SenseCheckBanner text={SENSE_CHECK[selectedDomainId] || ''} />
 
       {/* Feature Importance Chart */}
       {importanceLoading && (
@@ -258,8 +289,10 @@ export default function Step6Explainability() {
       )}
       {importanceError && (
         <div className={styles.errorBanner}>
-          <strong>Error:</strong> {importanceError}
-          <button className={styles.retryBtn} onClick={loadFeatureImportance}>Retry</button>
+          {importanceError === 'Backend is not reachable.'
+            ? '⏳ Backend is starting up — retrying automatically in 5 seconds…'
+            : <><strong>Error:</strong> {importanceError}</>}
+          <button className={styles.retryBtn} onClick={loadFeatureImportance}>Retry now</button>
         </div>
       )}
       {importanceData && !importanceLoading && (
